@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="calc" role="application" aria-label="Calculadora">
+  <main class="calc">
     <div class="topbar">
       <div class="title">Calculadora</div>
       <div class="hint">Teclado: 0–9 • + − × ÷ • Enter • Esc</div>
     </div>
 
-    <section class="display" aria-live="polite" aria-atomic="true">
+    <section class="display">
       <div id="history" class="history"></div>
       <div id="screen" class="screen">0</div>
     </section>
 
-    <section class="keys" aria-label="Teclas da calculadora">
+    <section class="keys">
       <button class="key util danger" data-action="clear">C</button>
       <button class="key util" data-action="backspace">⌫</button>
       <button class="key util" data-action="toggle-sign">±</button>
@@ -39,13 +39,10 @@
       <button class="key" data-num="3">3</button>
       <button class="key op" data-op="+">+</button>
 
-      <button class="key util" data-action="percent">%</button>
-      <button class="key" data-num="0">0</button>
+      <button class="key span-2" data-num="0">0</button>
       <button class="key" data-num=".">.</button>
-      <button class="key equals success" data-action="equals">=</button>
+      <button class="key success" data-action="equals">=</button>
     </section>
-
-    <div class="footer">Feito com HTML • CSS • JS</div>
   </main>
 
   <script src="script.js"></script>
