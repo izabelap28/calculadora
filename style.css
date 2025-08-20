@@ -1,1 +1,89 @@
+:root {
+  --bg: #f8f5f0;
+  --panel: #fffdf9;
+  --panel-2: #f5f1eb;
+  --text: #3e3a36;
+  --muted: #8a817c;
+  --accent: #6b5e55;
+  --danger: #7c6f67;
+  --success: #5a5049;
+  --border: #e5ded6;
+  --border-2: #d6cec5;
+  --btn: #f2ede7;
+  --btn-hover: #e9e2da;
+  --shadow: 0 10px 30px rgba(0,0,0,.06);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: Inter, sans-serif;
+  background: linear-gradient(180deg, #faf7f3 0%, var(--bg) 100%);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.calc {
+  width: min(420px, 100%);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.topbar .title { font-weight: 700; }
+.topbar .hint { font-size: 12px; color: var(--muted); }
+
+.display {
+  padding: 18px 16px 8px;
+  min-height: 116px;
+  display: grid;
+  grid-template-rows: 28px 1fr;
+  gap: 8px;
+}
+.display .history { color: var(--muted); font-size: 14px; }
+.display .screen {
+  text-align: right;
+  font-size: clamp(28px, 6vw, 44px);
+  font-weight: 700;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 16px;
+}
+
+button.key {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--btn);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .06s;
+}
+button.key:hover { background: var(--btn-hover); }
+button.key:active { transform: scale(0.97); }
+
+.key.op { color: var(--accent); }
+.key.equals { background: #eae5de; border-color: var(--border-2); }
+.key.util { color: var(--muted); }
+.key.danger { color: var(--danger); }
+.key.success { color: var(--success); }
+
+.key.span-2 { grid-column: span 2; }
 
