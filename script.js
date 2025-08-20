@@ -1,64 +1,145 @@
-const screen = document.getElementById("screen");
+const resultEl = document.getElementById("result");
 const historyEl = document.getElementById("history");
+const keys = document.querySelector(".keys");
 
-let current = "0";
-let history = "";
-let operator = null;
-let resetNext = false;
+let expression = ""; // expressão em caracteres amigáveis (÷ × −)
+let lastResult = null;
 
-function updateScreen() {
-  screen.textContent = current;
-  historyEl.textContent = history;
+function updateDisplay() {
+  resultEl.value = expression.length ? expression : "0";
 }
 
-function inputNumber(num) {
-  if (resetNext) {
-    current = num;
-    resetNext = false;
+function appendValue(v) {
+  // Evita dois operadores seguidos (exceto trocar operador)
+  const ops = ["+", "−", "×", "÷"];
+  const last = expression.slice(-1);
+  if (ops.includes(v) && ops.includes(last)) {
+    expression = expression.slice(0, -1) + v;
+  } else if (v === "." || v === ",") {
+    // vírgula/decimal: evita dois pontos no número atual
+    const tail = getCurrentNumber();
+    if (!tail.includes(".")) {
+      expression += ".";
+    }
   } else {
-    current = current === "0" ? num : current + num;
+    expression += v;
   }
-  updateScreen();
+  updateDisplay();
 }
 
-function inputOperator(op) {
-  if (operator !== null) calculate();
-  history = current + " " + op;
-  operator = op;
-  resetNext = true;
-  updateScreen();
+function getCurrentNumber() {
+  const parts = expression.split(/([+\-−×÷])/);
+  return parts[parts.length - 1] || "";
+}
+
+function clearAll() {
+  expression = "";
+  updateDisplay();
+  historyEl.textContent = "";
+}
+
+function delOne() {
+  expression = expression.slice(0, -1);
+  updateDisplay();
+}
+
+function invertSign() {
+  // inverte o número atual
+  const num = getCurrentNumber();
+  if (!num) return;
+  const start = expression.length - num.length;
+  if (num.startsWith("−")) {
+    expression = expression.slice(0, start) + num.slice(1);
+  } else if (num.startsWith("-")) {
+    expression = expression.slice(0, start) + num.slice(1);
+  } else {
+    expression = expression.slice(0, start) + "−" + num;
+  }
+  updateDisplay();
+}
+
+function percent() {
+  // transforma o número atual em percentual (divide por 100)
+  const num = getCurrentNumber();
+  if (!num) return;
+  const start = expression.length - num.length;
+  const value = safeToNumber(num);
+  if (value == null) return;
+  const p = value / 100;
+  expression = expression.slice(0, start) + String(p);
+  updateDisplay();
+}
+
+function normalizeForEval(exp) {
+  return exp
+    .replace(/÷/g, "/")
+    .replace(/×/g, "*")
+    .replace(/−/g, "-");
+}
+
+function safeToNumber(str) {
+  const normalized = normalizeForEval(str);
+  if (!/^[-]?\d+(\.\d+)?$/.test(normalized)) return null;
+  return parseFloat(normalized);
 }
 
 function calculate() {
-  if (operator === null) return;
-  let expression = history + " " + current;
+  if (!expression) return;
+  // evita fim com operador
+  if (/[+\-−×÷.]$/.test(expression)) expression = expression.slice(0, -1);
+
+  const exp = normalizeForEval(expression);
+
+  // valida somente números, operadores e ponto
+  if (!/^[\d+\-*/. ()]+$/.test(exp)) return;
+
   try {
-    current = String(eval(expression.replace("÷", "/").replace("×", "*")));
-  } catch {
-    current = "Erro";
+    // avalia com Function de forma controlada
+    // eslint-disable-next-line no-new-func
+    const result = Function(`"use strict"; return (${exp});`)();
+    if (typeof result === "number" && isFinite(result)) {
+      const out = Number(result.toPrecision(12)) + ""; // reduz ruído de ponto flutuante
+      historyEl.textContent = expression + " =";
+      resultEl.value = out;
+      expression = out;
+      lastResult = out;
+    }
+  } catch (e) {
+    historyEl.textContent = "Erro de expressão";
   }
-  operator = null;
-  history = "";
-  updateScreen();
 }
 
-document.querySelectorAll(".key").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (btn.dataset.num) inputNumber(btn.dataset.num);
-    else if (btn.dataset.op) inputOperator(btn.dataset.op);
-    else if (btn.dataset.action === "clear") {
-      current = "0"; history = ""; operator = null;
-      updateScreen();
-    } else if (btn.dataset.action === "backspace") {
-      current = current.slice(0, -1) || "0";
-      updateScreen();
-    } else if (btn.dataset.action === "toggle-sign") {
-      current = String(parseFloat(current) * -1);
-      updateScreen();
-    } else if (btn.dataset.action === "equals") {
-      calculate();
-    }
-  });
+/* Clique dos botões */
+keys.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+
+  const val = btn.getAttribute("data-value");
+  const action = btn.getAttribute("data-action");
+
+  if (val) {
+    if (val === "%") return percent();
+    appendValue(val);
+  } else if (action) {
+    if (action === "clear") clearAll();
+    if (action === "del") delOne();
+    if (action === "invert") invertSign();
+    if (action === "equals") calculate();
+  }
 });
 
-updateScreen();
+/* Suporte ao teclado */
+window.addEventListener("keydown", (e) => {
+  const k = e.key;
+
+  if (/\d/.test(k)) appendValue(k);
+  else if (k === "." || k === ",") appendValue(".");
+  else if (k === "+" ) appendValue("+");
+  else if (k === "-" ) appendValue("−");
+  else if (k === "*" ) appendValue("×");
+  else if (k === "/" ) appendValue("÷");
+  else if (k === "Enter" || k === "=") { e.preventDefault(); calculate(); }
+  else if (k === "Backspace") delOne();
+  else if (k === "Escape") clearAll();
+  else if (k === "%") percent();
+});
